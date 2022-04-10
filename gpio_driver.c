@@ -30,7 +30,7 @@ static ssize_t driver_read(struct file *File, char *user_buffer, size_t count, l
 	to_copy = min(count, sizeof(tmp));
 
 	/* Read value of button */
-	printk("Value of button: %d\n", gpio_get_value(17));
+	//printk("Value of button: %d\n", gpio_get_value(17));
 	tmp[0] = gpio_get_value(17) + '0';
 
 	/* Copy data to user */
@@ -54,6 +54,7 @@ static ssize_t driver_write(struct file *File, const char *user_buffer, size_t c
 
 	/* Copy data to user */
 	not_copied = copy_from_user(&value, user_buffer, to_copy);
+	printk("Value received: %d\n", value);
 
 	/* Setting the LED */
 	switch(value) {
