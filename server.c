@@ -17,6 +17,7 @@
 #include <signal.h>
 #include <pthread.h>
 #include <time.h>
+#define GPIO_DRIVER "/dev/my_gpio_driver"
 
 int server_socket;
 int client_socket;
@@ -27,8 +28,33 @@ void graceful_shutdown(int signo)
 
 }
 
+void toggle()
+{
+    char set = '1';
+    int gpio_fd = open(GPIO_DRIVER, O_RDWR, 0777);
+    write(gpio_fd,&set,1);
+
+}
+
+void mode(char * msg)
+{
+    printf("char %c\n",msg[0]);
+    switch (msg[2])
+    {
+        case '0':toggle(msg);
+                break;
+        // case '1':set_reset_load();
+        //         break;
+        // case '2':duration();
+        //         break;
+        // case '3':instant();
+        //         break;
+    }
+}
 int main()
 {
+
+    char server_message[256];
     //signal callback functions
     signal(SIGINT, graceful_shutdown);
     signal(SIGTERM, graceful_shutdown);
@@ -81,7 +107,12 @@ int main()
     addr_size = sizeof(cl_addr);
     client_socket = accept(server_socket, (struct sockaddr*)&cl_addr, &addr_size);
     
-    
+    syslog(LOG_DEBUG, "Connection to client succefull\n");
 
-    
+    int count = recv(client_socket, &server_message, sizeof(server_message),0);
+    printf("Count %d\n", count);
+    syslog(LOG_DEBUG,"String %s\n", server_message);
+    mode(server_message);
+    close(server_socket);
+    return 0;
 }
