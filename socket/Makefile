@@ -1,10 +1,18 @@
-all: server client
+ifeq ($(CC),)
+	CC = $(CROSS_COMPILE)gcc
+endif
+ifeq ($(CFLAGS),)
+	CFLAGS = -g -Wall -Werror
+endif
 
-server:
-	gcc server.c -o server
+all: server client
+.DEFAULT_GOAL := server client
+
+server: server.c
+	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES)
 	
-client:
-	gcc client.c -o client
+client: client.c
+	$(CC) $(CFLAGS) $^ -o $@ $(INCLUDES)
 
 clean:
-	rm -rf *.o server client
+	rm -f *.o server client
