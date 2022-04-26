@@ -114,7 +114,7 @@ void toggle(char * msg)
     int write_bytes, read_bytes;
     
     int gpio_fd = open(GPIO_DRIVER, O_RDWR, 0777);
-    if(gpio_id < 0)
+    if(gpio_fd < 0)
         syslog(LOG_ERR, "toggle: Cannot open file\n");
         
     read_bytes = read(gpio_fd, temp, 2);
@@ -153,7 +153,7 @@ void set_reset_load(char * msg)
     int write_bytes;
     
     int gpio_fd = open(GPIO_DRIVER, O_RDWR, 0777);
-    if(gpio_id < 0)
+    if(gpio_fd < 0)
         syslog(LOG_ERR, "set_reset_load: Cannot open file\n");
     if(msg[0] == '2')
         set_state += 2;
