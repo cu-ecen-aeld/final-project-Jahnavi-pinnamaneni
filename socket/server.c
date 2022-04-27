@@ -339,7 +339,9 @@ int main()
     int count = recv(client_socket, &server_message, sizeof(server_message),0);
     printf("Count %d\n", count);
     syslog(LOG_DEBUG,"String %s\n", server_message);
-    mode(server_message);}
+    mode(server_message);
+    close(client_socket);
+    }
     closelog();
     remove(GPIO_DRIVER);
     close(server_socket);
