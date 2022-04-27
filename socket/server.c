@@ -217,7 +217,7 @@ void instant(char *msg)
     }
     else
     {
-        hour = (msg[i]-'0')*10 + (msg[i+1] - '0');
+        hour = ((msg[i]-'0')*10 + (msg[i+1] - '0') -1);
         i = i+3;
     }
     
