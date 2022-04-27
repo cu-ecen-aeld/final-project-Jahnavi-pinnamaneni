@@ -212,7 +212,7 @@ void instant(char *msg)
     int i =6;
     if(msg[i+1] == ':')
     {
-        hour = (msg[i]-'0');
+        hour = (msg[i]-'0') - 1;
         i = i+2;
     }
     else
