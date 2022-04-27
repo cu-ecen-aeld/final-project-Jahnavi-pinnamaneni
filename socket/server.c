@@ -65,7 +65,7 @@ struct tm *info;
 void graceful_shutdown(int signo)
 {
     syslog(LOG_NOTICE,"CAUGHT SIGNAL, EXITING GRACEFULLY \n");
-    remove(GPIO_DRIVER);
+    //remove(GPIO_DRIVER);
     close(server_socket);
     closelog();
     exit(0);
@@ -326,16 +326,16 @@ int main()
     syslog(LOG_DEBUG, "Binded Succefully");
     freeaddrinfo(rp);
 
-
+    while(1){
     //listen for connection
     listen(server_socket, 5);
 
     addr_size = sizeof(cl_addr);
     client_socket = accept(server_socket, (struct sockaddr*)&cl_addr, &addr_size);
     
-    syslog(LOG_DEBUG, "Connection to client succefull\n");
+    syslog(LOG_DEBUG, "Connection to client successfull\n");
 
-    while(1){
+    
     int count = recv(client_socket, &server_message, sizeof(server_message),0);
     printf("Count %d\n", count);
     syslog(LOG_DEBUG,"String %s\n", server_message);
