@@ -1,4 +1,12 @@
-//citation: https://github.com/Johannes4Linux/Linux_Driver_Tutorial
+/*
+ * @file: gpio_driver.c
+ * @desc: This modules implements a GPIO device driver. This module can read and write to a GPIO
+ *  Pin. In the present code it can control two GPIO Pins 4 and 17, but the code is easily
+ *  scalable for multiple GPIO Pins.
+ * @Author: Jahnavi Pinnamaneni; japi8358@colorado.edu
+ * @citation: https://embetronicx.com/tutorials/linux/device-drivers/gpio-driver-basic-using-raspberry-pi/
+ */
+ 
 #include <linux/module.h>
 #include <linux/init.h>
 #include <linux/fs.h>
@@ -9,7 +17,7 @@
 /* Meta Information */
 MODULE_LICENSE("GPL");
 MODULE_AUTHOR("Jahnavi Pinnamaneni");
-MODULE_DESCRIPTION("A simple gpio driver for setting a LED and reading a button");
+MODULE_DESCRIPTION("A kernel Module for GPIO Driver");
 
 /* Variables for device and device class */
 static dev_t my_device_nr;
@@ -18,20 +26,22 @@ static struct cdev my_device;
 
 #define DRIVER_NAME "my_gpio_driver"
 #define DRIVER_CLASS "MyModuleClass"
+#define GPIO_FOUR 4
+#define GPIO_SEVENTEEN 17
 
 /**
  * @brief Read data out of the buffer
  */
 static ssize_t driver_read(struct file *File, char *user_buffer, size_t count, loff_t *offs) {
 	int to_copy, not_copied, delta;
-	char tmp[3] = " \n";
+	char tmp[4] = "  \n";
 
 	/* Get amount of data to copy */
 	to_copy = min(count, sizeof(tmp));
 
-	/* Read value of button */
-	//printk("Value of button: %d\n", gpio_get_value(17));
-	tmp[0] = gpio_get_value(17) + '0';
+	/* Read value of GPIO */
+	tmp[0] = gpio_get_value(GPIO_FOUR) + '0';
+	tmp[1] = gpio_get_value(GPIO_SEVENTEEN) + '0';
 
 	/* Copy data to user */
 	not_copied = copy_to_user(user_buffer, &tmp, to_copy);
@@ -56,17 +66,23 @@ static ssize_t driver_write(struct file *File, const char *user_buffer, size_t c
 	not_copied = copy_from_user(&value, user_buffer, to_copy);
 	printk("Value received: %d\n", value);
 
-	/* Setting the LED */
+	/* Setting the GPIO */
 	switch(value) {
 		case '0':
-			gpio_set_value(4, 0);
-			break;
+		gpio_set_value(GPIO_FOUR, 0);
+		break;
 		case '1':
-			gpio_set_value(4, 1);
-			break;
+		gpio_set_value(GPIO_FOUR, 1);
+		break;
+		case '2':
+		gpio_set_value(GPIO_SEVENTEEN, 0);
+		break;
+		case '3':
+		gpio_set_value(GPIO_SEVENTEEN, 1);
+		break;
 		default:
-			printk("Invalid Input!\n");
-			break;
+		printk("Invalid Input!\n");
+		break;
 	}
 
 	/* Calculate data */
@@ -134,40 +150,39 @@ static int __init ModuleInit(void) {
 	}
 
 	/* GPIO 4 init */
-	if(gpio_request(4, "rpi-gpio-4")) {
+	if(gpio_request(GPIO_FOUR, "rpi-gpio-4")) {
 		printk("Can not allocate GPIO 4\n");
 		goto AddError;
 	}
 
 	/* Set GPIO 4 direction */
-	if(gpio_direction_output(4, 0)) {
+	if(gpio_direction_output(GPIO_FOUR, 0)) {
 		printk("Can not set GPIO 4 to output!\n");
 		goto Gpio4Error;
 	}
 
 	/* GPIO 17 init */
-	if(gpio_request(17, "rpi-gpio-17")) {
+	if(gpio_request(GPIO_SEVENTEEN, "rpi-gpio-17")) {
 		printk("Can not allocate GPIO 17\n");
 		goto Gpio4Error;
 	}
 
 	/* Set GPIO 17 direction */
-	if(gpio_direction_input(17)) {
+	if(gpio_direction_output(GPIO_SEVENTEEN, 0)) {
 		printk("Can not set GPIO 17 to input!\n");
 		goto Gpio17Error;
 	}
 
-
 	return 0;
-Gpio17Error:
-	gpio_free(17);
-Gpio4Error:
-	gpio_free(4);
-AddError:
+	Gpio17Error:
+	gpio_free(GPIO_SEVENTEEN);
+	Gpio4Error:
+	gpio_free(GPIO_FOUR);
+	AddError:
 	device_destroy(my_class, my_device_nr);
-FileError:
+	FileError:
 	class_destroy(my_class);
-ClassError:
+	ClassError:
 	unregister_chrdev_region(my_device_nr, 1);
 	return -1;
 }
@@ -176,9 +191,9 @@ ClassError:
  * @brief This function is called, when the module is removed from the kernel
  */
 static void __exit ModuleExit(void) {
-	gpio_set_value(4, 0);
-	gpio_free(17);
-	gpio_free(4);
+	gpio_set_value(GPIO_FOUR, 0);
+	gpio_free(GPIO_SEVENTEEN);
+	gpio_free(GPIO_FOUR);
 	cdev_del(&my_device);
 	device_destroy(my_class, my_device_nr);
 	class_destroy(my_class);
@@ -188,5 +203,3 @@ static void __exit ModuleExit(void) {
 
 module_init(ModuleInit);
 module_exit(ModuleExit);
-
-
